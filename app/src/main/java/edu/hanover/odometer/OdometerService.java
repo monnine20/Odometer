@@ -5,13 +5,42 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.os.Binder;
 
+
 public class OdometerService extends Service {
     private final IBinder binder = new OdometerBinder();
+    private static double distanceInMeters;
+    private static Location lastLocation = null;
+    private LocationListener listener;
 
     public class OdometerBinder extends Binder {
         OdometerService getOdometer() {
             return OdometerService.this;
         }
+    }
+
+    @Override
+    public void onCreate() {
+        listener = new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                if (lastLocation == null) {
+                    lastLocation = location;
+                }
+                distanceInMeters += location.distanceTo(lastLocation);
+                lastLocation = location;
+            }
+
+            @Override
+            public void onProviderDisabled(String arg0) {}
+
+            @Override
+            public void onProviderEnabled(String arg0) {}
+
+            @Override
+            public void onStatusChanged(String arg0, int arg1, Bundle bundle) {}
+        };
+        locManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+        locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 1, listener);
     }
 
     @Override
