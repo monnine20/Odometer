@@ -4,13 +4,18 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 import android.os.Binder;
-
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.content.Context;
+import android.os.Bundle;
 
 public class OdometerService extends Service {
     private final IBinder binder = new OdometerBinder();
     private static double distanceInMeters;
     private static Location lastLocation = null;
     private LocationListener listener;
+    private LocationManager locManager;
 
     public class OdometerBinder extends Binder {
         OdometerService getOdometer() {
@@ -46,6 +51,19 @@ public class OdometerService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         return binder;
+    }
+
+    @Override
+    public void onDestroy() {
+        if (locManager != null && listener != null) {
+            locManager.removeUpdates(listener);
+            locManager = null;
+            listener = null;
+        }
+    }
+
+    public double getMiles() {
+        return this.distanceInMeters / 1609.344;
     }
 
 }
